@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "building": "Gedung FTI UAJY - Custom Lantai 2",
+    "floor": 1,
+    "imageWidth": 3307,
+    "imageHeight": 2339,
+    "imageUrl": "/maps/lantai2.png"
+  },
+  "nodes": [
+    {
+      "id": "0",
+      "label": "Persimpangan 0",
+      "x": 659,
+      "y": 463,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Jalan lurus di persimpangan Selasar Barat"
+    },
+    {
+      "id": "1",
+      "label": "Tangga",
+      "x": 527,
+      "y": 463,
+      "floor": 1,
+      "type": "room",
+      "instruction": "Mulai perjalanan dari area Tangga"
+    },
+    {
+      "id": "2",
+      "label": "Persimpangan 2",
+      "x": 762,
+      "y": 463,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Lurus melewati persimpangan Toilet"
+    },
+    {
+      "id": "3",
+      "label": "Toilet",
+      "x": 762,
+      "y": 413,
+      "floor": 1,
+      "type": "room",
+      "instruction": "Anda telah sampai di Toilet"
+    },
+    {
+      "id": "4",
+      "label": "Persimpangan 4",
+      "x": 659,
+      "y": 849,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Jalan menyusuri Selasar Barat"
+    },
+    {
+      "id": "5",
+      "label": "Server, Lab Komputasi",
+      "x": 820,
+      "y": 849,
+      "floor": 1,
+      "type": "room",
+      "instruction": "Anda telah sampai di Server, Lab Komputasi"
+    },
+    {
+      "id": "6",
+      "label": "Persimpangan 6",
+      "x": 2698,
+      "y": 463,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Lurus menuju koridor sayap timur"
+    },
+    {
+      "id": "7",
+      "label": "Persimpangan 7",
+      "x": 2698,
+      "y": 236,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Lurus ke persimpangan utara sayap timur"
+    },
+    {
+      "id": "8",
+      "label": "Persimpangan 8",
+      "x": 2698,
+      "y": 1776,
+      "floor": 1,
+      "type": "junction",
+      "instruction": "Berjalan menyusuri lorong utama sayap timur"
+    },
+    {
+      "id": "9",
+      "label": "R. Arsip",
+      "x": 2713,
+      "y": 1826,
+      "floor": 1,
+      "type": "room",
+      "instruction": "Anda telah sampai di R. Arsip"
+    }
+  ],
+  "edges": [
+    {
+      "from": "1",
+      "to": "0",
+      "weight": 132,
+      "direction": "straight"
+    },
+    {
+      "from": "0",
+      "to": "2",
+      "weight": 103,
+      "direction": "straight"
+    },
+    {
+      "from": "2",
+      "to": "3",
+      "weight": 56,
+      "direction": "turn_left"
+    },
+    {
+      "from": "0",
+      "to": "4",
+      "weight": 386,
+      "direction": "turn_right"
+    },
+    {
+      "from": "4",
+      "to": "5",
+      "weight": 161,
+      "direction": "turn_left"
+    },
+    {
+      "from": "2",
+      "to": "6",
+      "weight": 1936,
+      "direction": "straight"
+    },
+    {
+      "from": "6",
+      "to": "7",
+      "weight": 227,
+      "direction": "turn_left"
+    },
+    {
+      "from": "6",
+      "to": "8",
+      "weight": 1313,
+      "direction": "turn_right"
+    },
+    {
+      "from": "8",
+      "to": "9",
+      "weight": 51,
+      "direction": "straight"
+    }
+  ]
+}
