@@ -20,6 +20,22 @@ const DynamicIndoorMap = dynamic(
   }
 )
 
+// Dynamically import QrScanner component with SSR disabled to bypass SSR window errors
+const DynamicQrScanner = dynamic(
+  () => import('../components/QrScanner').then((mod) => mod.QrScanner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="glass-panel rounded-3xl p-5 w-full max-w-[360px] shadow-2xl flex flex-col items-center justify-center bg-white">
+          <div className="relative w-10 h-10 animate-spin rounded-full border-3 border-t-[#2563EB] border-slate-200"></div>
+          <p className="mt-4 text-xs font-semibold text-slate-500">Membuka Kamera...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
 function LoadingSpinner() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-650">
@@ -47,6 +63,8 @@ function HomeContent() {
   const [showSearchDropdown, setShowSearchDropdown] = useState<boolean>(false)
   const [isOffline, setIsOffline] = useState<boolean>(false)
   const [showSimulator, setShowSimulator] = useState<boolean>(false)
+  const [locationConfirmed, setLocationConfirmed] = useState<string>('')
+  const [showCameraScanner, setShowCameraScanner] = useState<boolean>(false)
 
   // Real-time GPS & Compass Sensor States
   const [gpsActive, setGpsActive] = useState<boolean>(false)
@@ -99,12 +117,36 @@ function HomeContent() {
       if (match) {
         setStartNodeId(match.id)
         setErrorMessage('')
-        setRouteResult(null)
+        
+        // Show confirmation toast
+        setLocationConfirmed(match.label)
+        const timer = setTimeout(() => setLocationConfirmed(''), 3500)
+        return () => clearTimeout(timer)
       } else {
         setErrorMessage(`Titik QR "${startQuery}" tidak ditemukan pada denah gedung ini.`)
       }
     }
   }, [searchParams, nodes])
+
+  // Automatically recalculate route when start or destination changes (F-03 / FR-01 / FR-05.3)
+  useEffect(() => {
+    if (startNodeId && destinationId) {
+      if (startNodeId === destinationId) {
+        setErrorMessage('Posisi awal dan tujuan tidak boleh sama.')
+        setRouteResult(null)
+        return
+      }
+
+      const result = findShortestPath(nodes, edges, startNodeId, destinationId)
+      if (result) {
+        setRouteResult(result)
+        setErrorMessage('')
+      } else {
+        setErrorMessage('Tidak ditemukan jalur yang menghubungkan titik ini. Hubungi pengelola gedung.')
+        setRouteResult(null)
+      }
+    }
+  }, [startNodeId, destinationId, nodes, edges])
 
   // iOS Device Orientation permission handler
   const requestOrientationPermission = async (): Promise<boolean> => {
@@ -238,7 +280,6 @@ function HomeContent() {
 
   const handleManualStartChange = (id: string) => {
     setStartNodeId(id)
-    setRouteResult(null)
     setErrorMessage('')
     router.replace('/')
   }
@@ -247,18 +288,62 @@ function HomeContent() {
     setDestinationId(node.id)
     setSearchTerm(node.label)
     setShowSearchDropdown(false)
-    setRouteResult(null)
     setErrorMessage('')
   }
 
-  // Tombol 'Sudah Sampai' (Flexible Update)
+  // Tombol 'Sudah Sampai' (Flexible Update - FR-05.4 / FR-05.5)
   const handleArrived = () => {
     if (!destinationId) return
-    setStartNodeId(destinationId)
+    const prevDestination = destinationId
     setDestinationId('')
     setSearchTerm('')
     setRouteResult(null)
     setErrorMessage('')
+    setStartNodeId(prevDestination)
+    router.replace('/')
+  }
+
+  // Camera scan success handler (F-01 / FR-01.5)
+  const handleCameraScanSuccess = (decodedText: string) => {
+    let nodeId = ''
+    try {
+      if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+        const url = new URL(decodedText)
+        const startParam = url.searchParams.get('start')
+        if (startParam) {
+          nodeId = startParam
+        }
+      } else {
+        nodeId = decodedText.trim()
+      }
+    } catch (e) {
+      nodeId = decodedText.trim()
+    }
+
+    if (nodeId) {
+      const match = nodes.find((node) => node.id === nodeId)
+      if (match) {
+        setStartNodeId(match.id)
+        setErrorMessage('')
+        setLocationConfirmed(match.label)
+        setShowCameraScanner(false)
+        
+        router.push(`/?start=${match.id}`)
+        
+        const timer = setTimeout(() => setLocationConfirmed(''), 3500)
+        return () => clearTimeout(timer)
+      } else {
+        setErrorMessage(`Titik QR "${nodeId}" tidak ditemukan pada denah gedung ini.`)
+        setShowCameraScanner(false)
+      }
+    } else {
+      setErrorMessage('Format QR Code tidak valid.')
+      setShowCameraScanner(false)
+    }
+  }
+
+  const handleCameraScanError = (error: string) => {
+    console.warn('QR scan error:', error)
   }
 
   // Simulate scanning a physical QR code
@@ -616,6 +701,18 @@ function HomeContent() {
 
       {/* 4. Floating Action Buttons (FABs) in bottom-right corner */}
       <div className="absolute bottom-6 right-6 z-20 flex flex-col gap-2.5">
+        {/* Camera Scan FAB (F-01 / FR-01.5) */}
+        <button
+          onClick={() => setShowCameraScanner(true)}
+          className="w-11 h-11 rounded-full flex items-center justify-center border shadow-md bg-white border-slate-200 text-slate-655 hover:text-slate-800 hover:border-slate-350 shadow active:scale-90 transition-all duration-300"
+          title="Scan QR Code Lokasi"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5.5 h-5.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+          </svg>
+        </button>
+
         {/* GPS activation FAB */}
         <button
           onClick={toggleGps}
@@ -732,6 +829,32 @@ function HomeContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Location Confirmation Toast (FR-01.3) */}
+      {locationConfirmed && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 animate-[slide-down_0.3s_ease-out]">
+          <div className="glass-panel px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5 border border-emerald-500/25 bg-emerald-50/90 backdrop-blur-md">
+            <div className="w-5.5 h-5.5 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow shadow-emerald-500/20 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] text-emerald-600 font-extrabold uppercase tracking-wider leading-none">Posisi Terkonfirmasi</span>
+              <span className="text-xs text-slate-800 font-black mt-0.5 leading-none">{locationConfirmed}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Camera QR Scanner Drawer Modal (F-01 / FR-01.5) */}
+      {showCameraScanner && (
+        <DynamicQrScanner
+          onScanSuccess={handleCameraScanSuccess}
+          onScanError={handleCameraScanError}
+          onClose={() => setShowCameraScanner(false)}
+        />
       )}
     </main>
   )

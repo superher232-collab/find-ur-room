@@ -3,7 +3,7 @@ const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
   '/data/building-graph.json',
-  '/maps/lantai2.png',
+  '/icon.svg',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 ]
 
