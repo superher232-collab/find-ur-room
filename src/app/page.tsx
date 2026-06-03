@@ -183,25 +183,6 @@ function HomeContent() {
     }
   }, [searchParams, nodes])
 
-  // Automatically recalculate route when start or destination changes (F-03 / FR-01 / FR-05.3)
-  useEffect(() => {
-    if (startNodeId && destinationId) {
-      if (startNodeId === destinationId) {
-        setErrorMessage('Posisi awal dan tujuan tidak boleh sama.')
-        setRouteResult(null)
-        return
-      }
-
-      const result = findShortestPath(nodes, edges, startNodeId, destinationId)
-      if (result) {
-        setRouteResult(result)
-        setErrorMessage('')
-      } else {
-        setErrorMessage('Tidak ditemukan jalur yang menghubungkan titik ini. Hubungi pengelola gedung.')
-        setRouteResult(null)
-      }
-    }
-  }, [startNodeId, destinationId, nodes, edges])
 
   // iOS Device Orientation permission handler
   const requestOrientationPermission = async (): Promise<boolean> => {
@@ -336,6 +317,7 @@ function HomeContent() {
   const handleManualStartChange = (id: string) => {
     setStartNodeId(id)
     setErrorMessage('')
+    setRouteResult(null)
     router.replace('/')
   }
 
@@ -344,6 +326,7 @@ function HomeContent() {
     setSearchTerm(node.label)
     setShowSearchDropdown(false)
     setErrorMessage('')
+    setRouteResult(null)
   }
 
   // Tombol 'Sudah Sampai' (Flexible Update - FR-05.4 / FR-05.5)

@@ -77,8 +77,14 @@ export function IndoorMap({
       // Render image overlay
       L.imageOverlay(imageUrl, bounds).addTo(map)
       
-      // Fit view to the bounds
-      map.fitBounds(bounds)
+      // Calculate tighter bounds for initial view (focus strictly on building, crop white margins)
+      const buildingBounds: [[number, number], [number, number]] = [
+        [imageHeight - 500, 50],
+        [imageHeight - 200, 950]
+      ]
+      
+      // Fit view to the building bounds
+      map.fitBounds(buildingBounds)
 
       mapInstanceRef.current = map
 
@@ -212,6 +218,18 @@ export function IndoorMap({
 
   return (
     <div className="w-full h-full relative bg-slate-100 overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
+      <style>{`
+        .route-polyline-flow {
+          stroke-dasharray: 2000;
+          stroke-dashoffset: 2000;
+          animation: drawRoute 1.5s forwards ease-in-out;
+        }
+        @keyframes drawRoute {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
       <div ref={mapContainerRef} className="w-full h-full z-10 monochrome-map" />
 
       {/* Simulated Map Controls Info Overlays */}
