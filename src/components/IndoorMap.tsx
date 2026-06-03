@@ -59,7 +59,7 @@ export function IndoorMap({
       // Initialize Map
       const map = L.map(mapContainerRef.current, {
         crs: L.CRS.Simple,
-        minZoom: -1,
+        minZoom: -4,
         maxZoom: 2,
         zoomControl: false,
         attributionControl: false,

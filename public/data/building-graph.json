@@ -1,157 +1,150 @@
 {
-  "metadata": {
-    "building": "Gedung FTI UAJY - Custom Lantai 2",
-    "floor": 1,
-    "imageWidth": 3307,
-    "imageHeight": 2339,
-    "imageUrl": "/maps/lantai2.png"
-  },
-  "nodes": [
-    {
-      "id": "0",
-      "label": "Persimpangan 0",
-      "x": 659,
-      "y": 463,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Jalan lurus di persimpangan Selasar Barat"
-    },
-    {
-      "id": "1",
-      "label": "Tangga",
-      "x": 527,
-      "y": 463,
-      "floor": 1,
-      "type": "room",
-      "instruction": "Mulai perjalanan dari area Tangga"
-    },
-    {
-      "id": "2",
-      "label": "Persimpangan 2",
-      "x": 762,
-      "y": 463,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Lurus melewati persimpangan Toilet"
-    },
-    {
-      "id": "3",
-      "label": "Toilet",
-      "x": 762,
-      "y": 413,
-      "floor": 1,
-      "type": "room",
-      "instruction": "Anda telah sampai di Toilet"
-    },
-    {
-      "id": "4",
-      "label": "Persimpangan 4",
-      "x": 659,
-      "y": 849,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Jalan menyusuri Selasar Barat"
-    },
-    {
-      "id": "5",
-      "label": "Server, Lab Komputasi",
-      "x": 820,
-      "y": 849,
-      "floor": 1,
-      "type": "room",
-      "instruction": "Anda telah sampai di Server, Lab Komputasi"
-    },
-    {
-      "id": "6",
-      "label": "Persimpangan 6",
-      "x": 2698,
-      "y": 463,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Lurus menuju koridor sayap timur"
-    },
-    {
-      "id": "7",
-      "label": "Persimpangan 7",
-      "x": 2698,
-      "y": 236,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Lurus ke persimpangan utara sayap timur"
-    },
-    {
-      "id": "8",
-      "label": "Persimpangan 8",
-      "x": 2698,
-      "y": 1776,
-      "floor": 1,
-      "type": "junction",
-      "instruction": "Berjalan menyusuri lorong utama sayap timur"
-    },
-    {
-      "id": "9",
-      "label": "R. Arsip",
-      "x": 2713,
-      "y": 1826,
-      "floor": 1,
-      "type": "room",
-      "instruction": "Anda telah sampai di R. Arsip"
-    }
-  ],
-  "edges": [
-    {
-      "from": "1",
-      "to": "0",
-      "weight": 132,
-      "direction": "straight"
-    },
-    {
-      "from": "0",
-      "to": "2",
-      "weight": 103,
-      "direction": "straight"
-    },
-    {
-      "from": "2",
-      "to": "3",
-      "weight": 56,
-      "direction": "turn_left"
-    },
-    {
-      "from": "0",
-      "to": "4",
-      "weight": 386,
-      "direction": "turn_right"
-    },
-    {
-      "from": "4",
-      "to": "5",
-      "weight": 161,
-      "direction": "turn_left"
-    },
-    {
-      "from": "2",
-      "to": "6",
-      "weight": 1936,
-      "direction": "straight"
-    },
-    {
-      "from": "6",
-      "to": "7",
-      "weight": 227,
-      "direction": "turn_left"
-    },
-    {
-      "from": "6",
-      "to": "8",
-      "weight": 1313,
-      "direction": "turn_right"
-    },
-    {
-      "from": "8",
-      "to": "9",
-      "weight": 51,
-      "direction": "straight"
-    }
-  ]
+    "nodes": [
+        {
+            "id": 0,
+            "x": 129,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 1,
+            "x": 128,
+            "y": 275,
+            "type": "room",
+            "name": "tangga kanan(sebelah lift)"
+        },
+        {
+            "id": 2,
+            "x": 898,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 3,
+            "x": 897,
+            "y": 275,
+            "type": "room",
+            "name": "tangga kiri"
+        },
+        {
+            "id": 4,
+            "x": 171,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 5,
+            "x": 171,
+            "y": 275,
+            "type": "room",
+            "name": "lift"
+        },
+        {
+            "id": 6,
+            "x": 898,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 7,
+            "x": 325,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 8,
+            "x": 325,
+            "y": 275,
+            "type": "room",
+            "name": "ruang seminar"
+        },
+        {
+            "id": 9,
+            "x": 546,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 10,
+            "x": 544,
+            "y": 275,
+            "type": "room",
+            "name": "lab rpb"
+        },
+        {
+            "id": 11,
+            "x": 827,
+            "y": 335,
+            "type": "transit"
+        },
+        {
+            "id": 12,
+            "x": 823,
+            "y": 275,
+            "type": "room",
+            "name": "ruang dosen"
+        }
+    ],
+    "edges": [
+        {
+            "from": 0,
+            "to": 1,
+            "weight": 46.01
+        },
+        {
+            "from": 2,
+            "to": 3,
+            "weight": 41.01
+        },
+        {
+            "from": 4,
+            "to": 5,
+            "weight": 39.0
+        },
+        {
+            "from": 7,
+            "to": 8,
+            "weight": 56.0
+        },
+        {
+            "from": 9,
+            "to": 10,
+            "weight": 58.03
+        },
+        {
+            "from": 11,
+            "to": 12,
+            "weight": 68.12
+        },
+        {
+            "from": 0,
+            "to": 4,
+            "weight": 42.58
+        },
+        {
+            "from": 4,
+            "to": 7,
+            "weight": 159.90
+        },
+        {
+            "from": 7,
+            "to": 9,
+            "weight": 221.00
+        },
+        {
+            "from": 9,
+            "to": 11,
+            "weight": 281.04
+        },
+        {
+            "from": 11,
+            "to": 2,
+            "weight": 71.03
+        },
+        {
+            "from": 11,
+            "to": 6,
+            "weight": 71.03
+        }
+    ]
 }

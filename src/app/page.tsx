@@ -49,10 +49,65 @@ function HomeContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  // Load building data directly from imported JSON
-  const nodes = graphData.nodes as GraphNode[]
-  const edges = graphData.edges as GraphEdge[]
-  const metadata = graphData.metadata
+  // Load and preprocess building data directly from imported JSON to preserve raw JSON structure
+  const nodes = (graphData.nodes as any[]).map((node) => {
+    let label = ''
+    if (node.type === 'room') {
+      const rawName = node.name || `Ruangan ${node.id}`
+      label = rawName
+        .split(' ')
+        .map((word: string) => {
+          if (word.toUpperCase() === 'RPB') return 'RPB'
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        })
+        .join(' ')
+    } else {
+      const transitLabels: Record<number, string> = {
+        0: 'Selasar Tangga Kanan',
+        2: 'Selasar Tangga Kiri',
+        4: 'Selasar Lift',
+        6: 'Ujung Lorong Timur',
+        7: 'Selasar Ruang Seminar',
+        9: 'Selasar Lab RPB',
+        11: 'Selasar Ruang Dosen',
+      }
+      label = transitLabels[node.id] || `Transit ${node.id}`
+    }
+
+    let instruction = ''
+    if (node.type === 'room') {
+      instruction = `Anda telah sampai di ${label}`
+    } else {
+      instruction = `Berjalan melewati ${label}`
+    }
+
+    return {
+      id: String(node.id),
+      label: label,
+      x: node.x,
+      y: node.y,
+      floor: 2,
+      type: node.type === 'transit' ? 'junction' : node.type,
+      instruction: instruction,
+    } as GraphNode
+  })
+
+  const edges = (graphData.edges as any[]).map((edge) => {
+    return {
+      from: String(edge.from),
+      to: String(edge.to),
+      weight: edge.weight,
+      direction: 'straight'
+    } as GraphEdge
+  })
+
+  const metadata = {
+    building: "Gedung FTI UAJY - Custom Lantai 2",
+    floor: 2,
+    imageWidth: 1000,
+    imageHeight: 707,
+    imageUrl: "/maps/Lantai 2.png"
+  }
 
   // State Management
   const [startNodeId, setStartNodeId] = useState<string>('')
@@ -471,11 +526,14 @@ function HomeContent() {
                   className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-3 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#2563EB]/80 cursor-pointer appearance-none shadow-sm"
                 >
                   <option value="" disabled className="text-slate-400">Pilih titik awal...</option>
-                  {nodes.map((node) => (
-                    <option key={node.id} value={node.id} className="bg-white text-slate-700">
-                      {node.label}
-                    </option>
-                  ))}
+                  {nodes
+                    .slice()
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map((node) => (
+                      <option key={node.id} value={node.id} className="bg-white text-slate-700">
+                        {node.label}
+                      </option>
+                    ))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-3 h-3">
@@ -780,51 +838,65 @@ function HomeContent() {
               >
                 <span className="font-bold text-slate-700 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                  QR Tangga
+                  QR Tangga Kiri
                 </span>
-                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 1 (Tangga)</span>
+                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 1 (Tangga Kiri)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  simulateQRScan('4')
+                  setShowSimulator(false)
+                }}
+                className="p-2.5 text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-200/60 rounded-xl flex flex-col gap-0.5 transition-all text-xs"
+              >
+                <span className="font-bold text-slate-700 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                  QR Lift
+                </span>
+                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 4 (Lift)</span>
               </button>
               
               <button
                 onClick={() => {
-                  simulateQRScan('3')
+                  simulateQRScan('6')
                   setShowSimulator(false)
                 }}
                 className="p-2.5 text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-200/60 rounded-xl flex flex-col gap-0.5 transition-all text-xs"
               >
                 <span className="font-bold text-slate-700 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-                  QR Toilet
+                  QR Selasar Seminar
                 </span>
-                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 3 (Toilet)</span>
+                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 6 (Selasar Ruang Seminar)</span>
               </button>
 
               <button
                 onClick={() => {
-                  simulateQRScan('0')
+                  simulateQRScan('8')
                   setShowSimulator(false)
                 }}
                 className="p-2.5 text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-200/60 rounded-xl flex flex-col gap-0.5 transition-all text-xs"
               >
                 <span className="font-bold text-slate-700 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-                  QR Simpang 0
+                  QR Selasar Lab RPB
                 </span>
-                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 0</span>
+                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 8 (Selasar Lab RPB)</span>
               </button>
 
               <button
                 onClick={() => {
-                  simulateQRScan('5')
+                  simulateQRScan('11')
                   setShowSimulator(false)
                 }}
-                className="p-2.5 text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-200/60 rounded-xl flex flex-col gap-0.5 transition-all text-xs"
+                className="p-2.5 text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-200/60 rounded-xl flex flex-col gap-0.5 transition-all text-xs col-span-2"
               >
-                <span className="font-bold text-slate-700 flex items-center gap-1">
+                <span className="font-bold text-slate-700 flex items-center gap-1 justify-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>
-                  QR Server, Lab
+                  QR Ruang Dosen
                 </span>
-                <span className="text-[8.5px] text-slate-400 font-mono font-bold">node 5 (Server Lab)</span>
+                <span className="text-[8.5px] text-slate-400 font-mono font-bold text-center">node 11 (Ruang Dosen)</span>
               </button>
             </div>
           </div>
