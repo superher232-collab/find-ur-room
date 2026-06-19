@@ -60,7 +60,7 @@ export function IndoorMap({
       const map = L.map(mapContainerRef.current, {
         crs: L.CRS.Simple,
         minZoom: -4,
-        maxZoom: 2,
+        maxZoom: 1, // Limit max zoom to avoid severe pixelation
         zoomControl: false,
         attributionControl: false,
       })
@@ -140,12 +140,12 @@ export function IndoorMap({
     if (routePath && routePath.length > 1) {
       const latLngs = routePath.map((node) => getLatLng(node.x, node.y))
       
-      // Draw high tech glowing blue polyline
       const polyline = L.polyline(latLngs, {
-        color: '#2563EB',
-        weight: 5,
-        opacity: 0.95,
-        className: 'route-polyline-flow', // Add animation class
+        color: '#7C3AED',
+        weight: 4,
+        opacity: 0.85,
+        dashArray: '5, 5',
+        className: 'route-polyline', // CSS class for hover glow added in globals.css
       }).addTo(map)
 
       layersRef.current.polyline = polyline
@@ -154,7 +154,7 @@ export function IndoorMap({
       routePath.forEach((node, index) => {
         if (index > 0 && index < routePath.length - 1) {
           const dotIcon = L.divIcon({
-            html: `<div class="w-2.5 h-2.5 bg-slate-400 rounded-full border border-white shadow"></div>`,
+            html: `<div class="w-2.5 h-2.5 bg-border rounded-full border border-background shadow-subtle"></div>`,
             className: '',
             iconSize: [10, 10],
             iconAnchor: [5, 5],
@@ -164,82 +164,51 @@ export function IndoorMap({
         }
       })
 
-      // Fit map to show the entire route with a nice padding
-      map.fitBounds(L.latLngBounds(latLngs), { padding: [55, 55] })
+      map.fitBounds(L.latLngBounds(latLngs), { padding: [55, 55], maxZoom: 0 })
     } else if (startNode) {
-      // Just focus on start node if no route yet
-      map.setView(getLatLng(startNode.x, startNode.y), 0)
+      map.setView(getLatLng(startNode.x, startNode.y), -1)
     }
 
-    // 3. Draw Start Marker (Pulsating green radar icon)
+    // 3. Draw Start Marker
     if (startNode) {
       const startIcon = L.divIcon({
         html: `
-          <div class="relative flex items-center justify-center w-8 h-8">
-            <span class="absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-50 animate-ping"></span>
-            <div class="relative w-4.5 h-4.5 bg-[#10B981] rounded-full border-2 border-white flex items-center justify-center shadow">
-              <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
-            </div>
-            ${heading !== null ? `
-              <div class="absolute -top-3.5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[9px] border-b-[#10B981] drop-shadow-[0_0_2px_rgba(16,185,129,0.8)]" style="transform: rotate(${heading}deg); transform-origin: 50% 20px;"></div>
-            ` : ''}
+          <div class="relative flex items-center justify-center w-5 h-5 bg-[#10B981] rounded-full border-2 border-white shadow-medium">
+            <span class="text-[10px] text-white font-bold">S</span>
           </div>
         `,
         className: '',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
       })
 
       const startMarker = L.marker(getLatLng(startNode.x, startNode.y), { icon: startIcon }).addTo(map)
-      startMarker.bindPopup(`<div class="text-slate-900 font-semibold p-1">📌 ${startNode.label}</div>`)
+      startMarker.bindPopup(`<div class="text-secondary font-semibold p-1">📍 ${startNode.label}</div>`)
       layersRef.current.startMarker = startMarker
     }
 
-    // 4. Draw End Marker (Modern elegant red pin)
+    // 4. Draw End Marker
     if (destinationNode) {
       const endIcon = L.divIcon({
         html: `
-          <div class="relative flex flex-col items-center justify-end w-8 h-8 animate-bounce">
-            <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 drop-shadow-md">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7Zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5Z" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5"/>
-            </svg>
+          <div class="relative flex flex-col items-center justify-center w-5 h-5 bg-[#EF4444] rounded-full border-2 border-white shadow-medium">
+            <span class="text-[10px] text-white font-bold">E</span>
           </div>
         `,
         className: '',
-        iconSize: [32, 32],
-        iconAnchor: [16, 30],
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
       })
 
       const endMarker = L.marker(getLatLng(destinationNode.x, destinationNode.y), { icon: endIcon }).addTo(map)
-      endMarker.bindPopup(`<div class="text-slate-900 font-semibold p-1">🚩 ${destinationNode.label}</div>`)
+      endMarker.bindPopup(`<div class="text-secondary font-semibold p-1">🚩 ${destinationNode.label}</div>`)
       layersRef.current.endMarker = endMarker
     }
   }
 
   return (
-    <div className="w-full h-full relative bg-slate-100 overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
-      <style>{`
-        .route-polyline-flow {
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 2000;
-          animation: drawRoute 1.5s forwards ease-in-out;
-        }
-        @keyframes drawRoute {
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-      `}</style>
+    <div className="w-full h-full relative overflow-hidden rounded-card">
       <div ref={mapContainerRef} className="w-full h-full z-10 monochrome-map" />
-
-      {/* Simulated Map Controls Info Overlays */}
-      <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 text-xs text-slate-500 flex items-center gap-2 z-20 shadow-sm">
-        <div className="w-1.5 h-1.5 bg-[#10B981] rounded-full"></div>
-        <span>Seret untuk menggeser (Pan)</span>
-        <span className="text-slate-300">|</span>
-        <div className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></div>
-        <span>Cubit / Scroll untuk memperbesar (Zoom)</span>
-      </div>
     </div>
   )
 }
