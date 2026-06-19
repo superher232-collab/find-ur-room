@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 
+import { X } from './ui/icons'
+
 interface QrScannerProps {
   onScanSuccess: (decodedText: string) => void
   onScanError: (error: string) => void
@@ -17,23 +19,16 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
     if (typeof window === 'undefined') return
 
     let isMounted = true
-    let scanner: Html5Qrcode | null = null
+    let initPromise: Promise<void> | null = null
 
-    const startScanner = async () => {
+    const initializeCamera = async () => {
       try {
-        scanner = new Html5Qrcode('qr-reader')
+        const scanner = new Html5Qrcode('qr-reader')
         qrScannerRef.current = scanner
 
-        const config = {
-          fps: 10,
-          qrbox: (width: number, height: number) => {
-            const size = Math.min(width, height) * 0.7
-            return { width: size, height: size }
-          }
-        }
+        const config = { fps: 10 }
 
         try {
-          // Attempt 1: Direct environment camera (safest for mobile, prevents enumeration crash)
           await scanner.start(
             { facingMode: 'environment' },
             config,
@@ -45,12 +40,13 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
             () => {}
           )
         } catch (envError) {
-          console.warn('Kamera belakang gagal, mencoba fallback...', envError)
-          // Attempt 2: Fallback for desktop or devices without 'environment' facingMode
+          console.warn('Environment camera failed, falling back...', envError)
           const devices = await Html5Qrcode.getCameras()
           if (devices && devices.length > 0) {
+            const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'))
+            const cameraId = backCamera ? backCamera.id : devices[0].id
             await scanner.start(
-              devices[0].id,
+              cameraId,
               config,
               (decodedText) => {
                 if (isMounted && decodedText && decodedText.trim() !== '') {
@@ -63,29 +59,34 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
             throw new Error('Tidak ada kamera yang ditemukan.')
           }
         }
-
-        // If component unmounted while start() was processing, stop it immediately
-        if (!isMounted && scanner.isScanning) {
-          scanner.stop().then(() => scanner?.clear()).catch(console.error)
-        }
       } catch (err: any) {
         if (isMounted) {
-          console.error('Camera initialization failed:', err)
+          console.error('Camera init failed:', err)
           setInitError(err?.message || 'Gagal mengakses kamera.')
           onScanError(err?.message || 'Gagal mengakses kamera.')
         }
       }
     }
 
-    startScanner()
+    initPromise = initializeCamera()
 
     return () => {
       isMounted = false
-      if (scanner && scanner.isScanning) {
-        scanner.stop()
-          .then(() => scanner?.clear())
-          .catch((e) => console.error('Error stopping scanner during cleanup:', e))
-      }
+      initPromise?.then(() => {
+        if (qrScannerRef.current) {
+          try {
+            if (qrScannerRef.current.isScanning) {
+              qrScannerRef.current.stop()
+                .then(() => qrScannerRef.current?.clear())
+                .catch(console.error)
+            } else {
+              qrScannerRef.current.clear()
+            }
+          } catch (e) {
+            console.error('Cleanup error:', e)
+          }
+        }
+      })
     }
   }, [onScanSuccess, onScanError])
 
@@ -105,19 +106,17 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
             </h3>
           </div>
           
-          <button
+          <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-surface hover:bg-border flex items-center justify-center text-muted hover:text-secondary transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface text-muted transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
+            <X size={20} />
           </button>
         </div>
 
-        {/* Video stream container */}
-        <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden border border-border shadow-inner flex items-center justify-center">
-          <div id="qr-reader" className="w-full h-full object-cover [&>video]:object-cover" />
+        {/* Scanner Area */}
+        <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden border border-border shadow-inner">
+          <div id="qr-reader" className="absolute inset-0 w-full h-full [&>video]:w-full [&>video]:h-full [&>video]:object-cover" />
           
           {/* Overlay scanning reticle */}
           {(!initError) && (
