@@ -38,7 +38,9 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
             { facingMode: 'environment' },
             config,
             (decodedText) => {
-              if (isMounted) onScanSuccess(decodedText)
+              if (isMounted && decodedText && decodedText.trim() !== '') {
+                onScanSuccess(decodedText)
+              }
             },
             () => {}
           )
@@ -51,7 +53,9 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
               devices[0].id,
               config,
               (decodedText) => {
-                if (isMounted) onScanSuccess(decodedText)
+                if (isMounted && decodedText && decodedText.trim() !== '') {
+                  onScanSuccess(decodedText)
+                }
               },
               () => {}
             )
@@ -86,8 +90,8 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
   }, [onScanSuccess, onScanError])
 
   return (
-    <div className="fixed inset-0 bg-secondary/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-background rounded-card p-5 w-full max-w-[360px] shadow-large flex flex-col gap-4 relative overflow-hidden border border-border animate-dropdown-slide">
+    <div className="fixed inset-0 bg-secondary/95 z-[100] flex items-center justify-center p-4">
+      <div className="bg-background rounded-card p-5 w-full max-w-[360px] shadow-large flex flex-col gap-4 relative border border-border">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-border">
