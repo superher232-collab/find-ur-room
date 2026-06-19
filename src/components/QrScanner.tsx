@@ -32,27 +32,37 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
           }
         }
 
-        const devices = await Html5Qrcode.getCameras()
-        if (devices && devices.length > 0) {
-          // Prefer back camera if available, otherwise fallback to the first device
-          const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'))
-          const cameraId = backCamera ? backCamera.id : devices[0].id
-
+        try {
+          // Attempt 1: Direct environment camera (safest for mobile, prevents enumeration crash)
           await scanner.start(
-            cameraId,
+            { facingMode: 'environment' },
             config,
             (decodedText) => {
               if (isMounted) onScanSuccess(decodedText)
             },
             () => {}
           )
-
-          // If component unmounted while start() was processing, stop it immediately
-          if (!isMounted && scanner.isScanning) {
-            scanner.stop().then(() => scanner?.clear()).catch(console.error)
+        } catch (envError) {
+          console.warn('Kamera belakang gagal, mencoba fallback...', envError)
+          // Attempt 2: Fallback for desktop or devices without 'environment' facingMode
+          const devices = await Html5Qrcode.getCameras()
+          if (devices && devices.length > 0) {
+            await scanner.start(
+              devices[0].id,
+              config,
+              (decodedText) => {
+                if (isMounted) onScanSuccess(decodedText)
+              },
+              () => {}
+            )
+          } else {
+            throw new Error('Tidak ada kamera yang ditemukan.')
           }
-        } else {
-          throw new Error('Tidak ada kamera yang ditemukan.')
+        }
+
+        // If component unmounted while start() was processing, stop it immediately
+        if (!isMounted && scanner.isScanning) {
+          scanner.stop().then(() => scanner?.clear()).catch(console.error)
         }
       } catch (err: any) {
         if (isMounted) {
