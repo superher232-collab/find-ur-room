@@ -86,7 +86,7 @@ export function QrScanner({ onScanSuccess, onScanError, onClose }: QrScannerProp
   }, [onScanSuccess, onScanError])
 
   return (
-    <div className="absolute inset-0 bg-secondary/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-secondary/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-background rounded-card p-5 w-full max-w-[360px] shadow-large flex flex-col gap-4 relative overflow-hidden border border-border animate-dropdown-slide">
         
         {/* Header */}
